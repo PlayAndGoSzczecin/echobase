@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GameFinder // Poland Sector</title>
+    <title>GameFinder // Tactical HQ</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -24,64 +24,87 @@
             color: var(--gold); 
             overflow: hidden; 
             height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         header { 
             background: #2a1010; 
-            padding: 10px 15px; 
+            padding: 10px 20px; 
             border-bottom: 2px solid #8c6a30; 
-            z-index: 2000;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 1001;
         }
 
-        header h1 { margin: 0; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
+        header h1 { margin: 0; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
 
         .btn-add-main {
             background: transparent;
             color: var(--gold);
             border: 1px solid #8c6a30;
-            padding: 8px 12px;
-            font-weight: bold;
+            padding: 8px 15px;
             cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
             font-size: 0.75rem;
         }
 
-        #map { width: 100%; height: calc(100vh - 60px); background: #000; }
+        #map { flex: 1; background: #000; }
 
-        /* SIDEBAR RWD */
+        /* SIDEBAR */
         #sidebar { 
+            width: 380px; 
             background: var(--glass); 
             border-left: 3px solid #8c6a30; 
-            padding: 20px; 
+            padding: 25px; 
             display: none; 
             position: absolute;
+            right: 0; top: 0; bottom: 0;
             z-index: 3000;
             overflow-y: auto;
             box-shadow: -10px 0 30px rgba(0,0,0,0.8);
         }
 
-        @media (min-width: 768px) { #sidebar { width: 380px; right: 0; top: 0; bottom: 0; } }
-        @media (max-width: 767px) { #sidebar { width: 100%; height: 85%; bottom: 0; left: 0; border-top: 4px solid #8c6a30; border-radius: 20px 20px 0 0; } }
+        @media (max-width: 767px) {
+            #sidebar { width: 100%; height: 80%; bottom: 0; top: auto; border-left: none; border-top: 4px solid #8c6a30; border-radius: 20px 20px 0 0; }
+        }
 
-        /* FORM */
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.7rem; color: #8c6a30; font-weight: bold; margin-bottom: 4px; }
-        input { width: 100%; padding: 12px; background: #0c0d12; border: 1px solid #444; color: var(--gold); box-sizing: border-box; }
+        /* FORMULARZ */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.7rem; color: #8c6a30; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; background: #0c0d12; border: 1px solid #444; color: var(--gold); box-sizing: border-box; border-radius: 4px; }
+        input:focus { border-color: var(--accent); outline: none; }
 
         .btn-save { 
-            background: transparent; color: var(--gold); border: 2px solid #8c6a30; padding: 15px; 
+            background: var(--accent); color: white; border: none; padding: 15px; 
             width: 100%; cursor: pointer; text-transform: uppercase; font-weight: bold; margin-top: 10px;
         }
 
-        /* CARD */
-        .shop-card h2 { color: #ffcc00; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-        .info-row { display: flex; align-items: flex-start; margin-bottom: 15px; gap: 10px; }
-        .info-icon { width: 20px; height: 20px; flex-shrink: 0; }
-        .info-text p { margin: 0; color: #fff; }
-        
-        .glow-marker { filter: drop-shadow(0 0 5px var(--accent)); }
+        /* KARTA SKLEPU */
+        .shop-card h2 { color: #ffcc00; border-bottom: 2px solid #333; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
+        .info-row { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid #333; }
+        .info-emoji { font-size: 1.4rem; filter: sepia(1) saturate(5) hue-rotate(-50deg); } /* Efekt złotej ikony */
+        .info-text label { margin: 0; opacity: 0.6; font-size: 0.6rem; }
+        .info-text p { margin: 3px 0 0 0; font-size: 1rem; color: #fff; }
+
+        /* PULSUJĄCY PUNKT (Tactical Beacon) */
+        .tactical-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent);
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px var(--accent); transform: scale(1); }
+            50% { box-shadow: 0 0 20px var(--accent); transform: scale(1.2); }
+            100% { box-shadow: 0 0 5px var(--accent); transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -92,18 +115,19 @@
     </header>
 
     <div id="map"></div>
-    <div id="sidebar"><div id="sidebarContent"></div></div>
+
+    <div id="sidebar">
+        <div id="sidebarContent"></div>
+    </div>
 
 <script>
 window.onload = function() {
     const SUPABASE_URL = 'https://mzxtgapfqwhhnnldxwlx.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHRnYXBmcXdoaG5ubGR4d2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzA3MDEsImV4cCI6MjA5MDMwNjcwMX0.Mc1aD03KQULGkUjc-folTiv9DVUY6fFl0Ke9A2EHFxw';
 
-    const { createClient } = window.supabase;
-    const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const map = L.map('map', { zoomSnap: 0.1, attributionControl: false, zoomControl: false }).setView([52.06, 19.48], 6);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    const map = L.map('map', { zoomSnap: 0.1, attributionControl: false }).setView([52.06, 19.48], 6);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
     const formatText = (str) => str ? str.trim().toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "";
@@ -111,50 +135,72 @@ window.onload = function() {
     window.toggleAddForm = function() {
         document.getElementById('sidebar').style.display = 'block';
         document.getElementById('sidebarContent').innerHTML = `
-            <h2 style="color:var(--accent)">REJESTRACJA</h2>
-            <div class="form-group"><label>NAZWA FIRMY</label><input type="text" id="add_name"></div>
-            <div class="form-group"><label>ULICA I NUMER</label><input type="text" id="add_street"></div>
-            <div class="form-group"><label>MIASTO</label><input type="text" id="add_city"></div>
-            <div class="form-group"><label>STRONA WWW</label><input type="text" id="add_url"></div>
-            <button class="btn-save" onclick="finalizujZapisAutomatyczny()">ZAPISZ</button>
-            <button class="btn-save" style="border-color:#444; color:#666" onclick="document.getElementById('sidebar').style.display='none'">ANULUJ</button>
+            <h2 style="color:var(--accent)">REJESTRACJA CELU</h2>
+            <div class="form-group"><label>Kryptonim Firmy</label><input type="text" id="add_name" placeholder="np. Atrax"></div>
+            <div class="form-group"><label>Ulica i Numer</label><input type="text" id="add_street" placeholder="np. Kostki Napierskiego 14"></div>
+            <div class="form-group"><label>Miasto</label><input type="text" id="add_city" placeholder="np. Szczecin"></div>
+            <div class="form-group"><label>Łącze WWW</label><input type="text" id="add_url" placeholder="www.link.pl"></div>
+            <button class="btn-save" onclick="finalizujZapis()">ZAPISZ W BAZIE HQ</button>
+            <button class="btn-save" style="background:none; border:1px solid #444; color:#666" onclick="document.getElementById('sidebar').style.display='none'">ANULUJ</button>
         `;
     }
 
-    window.finalizujZapisAutomatyczny = async function() {
+    window.finalizujZapis = async function() {
         const name = formatText(document.getElementById('add_name').value);
         const street = formatText(document.getElementById('add_street').value);
         const city = formatText(document.getElementById('add_city').value);
         const web = document.getElementById('add_url').value.trim();
 
-        if(!name || !street || !city) return alert("Błąd: Brak danych!");
+        if(!name || !street || !city) return alert("BŁĄD: System wymaga pełnych danych!");
 
+        const fullAddr = `${street}, ${city}`;
+        const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}`;
+        
         try {
-            const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(street + ', ' + city)}`;
-            const geoRes = await fetch(geoUrl);
-            const geoData = await geoRes.json();
-            if(geoData.length === 0) return alert("Nie znaleziono adresu!");
+            const res = await fetch(geoUrl);
+            const data = await res.json();
+            if(data.length === 0) return alert("BŁĄD: Współrzędne nieodnalezione!");
 
-            const { error } = await _supabase.from('shops').insert([{ name, city: street + ', ' + city, lat: geoData[0].lat, lng: geoData[0].lon, description: web }]);
-            if(!error) location.reload(); else alert(error.message);
-        } catch (e) { alert("Błąd połączenia"); }
+            const { error } = await _supabase.from('shops').insert([
+                { name, city: fullAddr, lat: data[0].lat, lng: data[0].lon, description: web }
+            ]);
+
+            if(!error) location.reload();
+            else alert("BŁĄD BAZY: " + error.message);
+        } catch(e) { alert("BŁĄD POŁĄCZENIA"); }
     }
 
     async function loadShops() {
         const { data, error } = await _supabase.from('shops').select('*');
         if(error) return;
+
         data.forEach(shop => {
-            const icon = L.icon({ iconUrl: 'pad.png', iconSize: [32, 32], iconAnchor: [16, 16], className: 'glow-marker' });
-            L.marker([shop.lat, shop.lng], { icon }).addTo(map).on('click', () => {
+            const tacticalIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: "<div class='tactical-dot'></div>",
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            L.marker([shop.lat, shop.lng], { icon: tacticalIcon }).addTo(map).on('click', () => {
                 document.getElementById('sidebar').style.display = 'block';
                 const link = shop.description ? (shop.description.startsWith('http') ? shop.description : 'https://' + shop.description) : null;
+                
                 document.getElementById('sidebarContent').innerHTML = `
                     <div class="shop-card">
                         <h2>${shop.name}</h2>
-                        <div class="info-row"><img src="location.png" class="info-icon"><div class="info-text"><label>ADRES</label><p>${shop.city}</p></div></div>
-                        <div class="info-row"><img src="web.png" class="info-icon"><div class="info-text"><label>WWW</label>
-                        <p>${link ? `<a href="${link}" target="_blank" style="color:var(--accent);font-weight:bold;text-decoration:none">ODWIEDŹ STRONĘ</a><br><span style="font-size:0.7rem;color:#8c6a30">${shop.description}</span>` : 'Brak'}</div></div>
-                        <button class="btn-save" style="background:#222" onclick="document.getElementById('sidebar').style.display='none'">ZAMKNIJ</button>
+                        <div class="info-row">
+                            <span class="info-emoji">📍</span>
+                            <div class="info-text"><label>SEKTOR / ADRES</label><p>${shop.city}</p></div>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-emoji">📡</span>
+                            <div class="info-text">
+                                <label>CZĘSTOTLIWOŚĆ WWW</label>
+                                <p>${link ? `<a href="${link}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:bold;">➔ OTWÓRZ ŁĄCZE</a><br><span style="font-size:0.75rem;color:#8c6a30">${shop.description}</span>` : 'BRAK DANYCH'}</p>
+                            </div>
+                        </div>
+                        <button class="btn-save" style="background:#222; border: 1px solid #444;" onclick="document.getElementById('sidebar').style.display='none'">POWRÓT DO MAPY</button>
                     </div>
                 `;
             });
