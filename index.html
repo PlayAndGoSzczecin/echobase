@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameFinder // Poland Sector</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -10,143 +10,90 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* --- TACTICAL-CYBERPUNK THEME --- */
         :root { 
             --gold: #d8c3a5; 
-            --dark-red: #1a0a0a; /* Bardzo ciemne, czerwonawe tło */
+            --dark: #0c0d12; 
             --accent: #e94560; 
-            --glass: rgba(26, 10, 10, 0.98); /* Tło panelu */
-            --bright-gold: #ffcc00;
+            --glass: rgba(22, 33, 62, 0.96); 
         }
 
         body { 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
             margin: 0; 
-            background: var(--dark-red); 
+            background: var(--dark); 
             color: var(--gold); 
             overflow: hidden; 
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* --- HEADER --- */
         header { 
-            background: #2a1010; 
-            padding: 10px 15px; 
+            background: #1a1a2e; 
+            padding: 15px 25px; 
             border-bottom: 2px solid #8c6a30; 
-            z-index: 2000;
+            z-index: 1001;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
-        header h1 { 
-            margin: 0; 
-            font-size: 1.2rem; 
-            letter-spacing: 2px; 
-            color: var(--gold);
-            text-transform: uppercase;
-        }
+        header h1 { margin: 0; font-size: 1.4rem; letter-spacing: 2px; }
 
         .btn-add-main {
-            background: transparent;
-            color: var(--gold);
-            border: 1px solid #8c6a30;
-            padding: 8px 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 22px;
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
             border-radius: 4px;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.4);
             transition: 0.2s;
         }
-        .btn-add-main:hover { background: #3a1515; border-color: var(--gold); }
+        .btn-add-main:hover { transform: scale(1.05); }
 
-        /* --- MAPA --- */
-        .main-content { flex: 1; position: relative; overflow: hidden; }
-        #map { width: 100%; height: 100%; background: #000; }
+        .main-content { display: flex; height: calc(100vh - 65px); position: relative; }
+        #map { flex: 1; background: #000; }
 
-        /* Tactical Zoom Control */
-        .leaflet-touch .leaflet-bar a { 
-            background-color: var(--dark-red); 
-            color: var(--gold); 
-            border: 1px solid #8c6a30;
-            width: 35px; height: 35px; line-height: 35px;
-        }
-        .leaflet-touch .leaflet-bar a:hover { background-color: #3a1515; }
-
-        /* --- SIDEBAR (Tactical & RWD) --- */
         #sidebar { 
+            width: 400px; 
             background: var(--glass); 
-            border-left: 3px solid #8c6a30; 
-            padding: 20px; 
+            border-left: 2px solid #8c6a30; 
+            padding: 25px; 
             display: none; 
             position: absolute;
-            z-index: 3000;
+            right: 0; top: 0; bottom: 0;
+            z-index: 1000;
             overflow-y: auto;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
-            transition: all 0.3s ease-out;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
         }
 
-        /* Desktop */
-        @media (min-width: 768px) {
-            #sidebar {
-                width: 380px; 
-                right: 0; top: 0; bottom: 0;
-            }
-        }
-
-        /* Mobile (Wysuwany z dołu) */
-        @media (max-width: 767px) {
-            #sidebar {
-                width: 100%; height: 85%;
-                bottom: 0; left: 0; right: 0;
-                border-left: none;
-                border-top: 4px solid #8c6a30;
-                border-radius: 20px 20px 0 0;
-                padding: 15px;
-            }
-        }
-
-        /* --- FORMULARZ (Stylizowany) --- */
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px; color: #8c6a30; font-weight: bold; letter-spacing: 1px;}
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; color: #8c6a30; font-weight: bold; }
         input { 
-            width: 100%; padding: 12px; background: #0c0d12; border: 1px solid #444; 
-            color: var(--gold); border-radius: 4px; box-sizing: border-box; font-size: 1rem;
+            width: 100%; padding: 12px; background: #0c0d12; border: 1px solid #333; 
+            color: white; border-radius: 4px; box-sizing: border-box; 
         }
-        input:focus { border-color: var(--bright-gold); outline: none; background: #1a0a0a; }
-        input::placeholder { color: #555; }
+        input:focus { border-color: var(--accent); outline: none; }
+        input::placeholder { color: #444; }
 
         .btn-save { 
-            background: transparent; color: var(--gold); border: 2px solid #8c6a30; padding: 15px; 
+            background: var(--accent); color: white; border: none; padding: 14px; 
             width: 100%; cursor: pointer; text-transform: uppercase; font-weight: bold; margin-top: 10px;
-            font-size: 1rem; letter-spacing: 1px; transition: 0.2s;
         }
-        .btn-save:hover { background: #3a1515; border-color: var(--gold); }
 
+        .shop-card h2 { color: var(--accent); margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; font-size: 1.8rem; }
+        .shop-card label { margin-top: 20px; color: var(--gold); opacity: 0.7; }
+        .shop-card p { margin: 5px 0; font-size: 1.1rem; line-height: 1.4; }
+        
         #loading_msg { display: none; color: var(--accent); font-weight: bold; text-align: center; margin: 10px 0; font-size: 0.8rem; letter-spacing: 1px; }
         .req-star { color: var(--accent); }
-
-        /* --- KARTA SKLEPU (Powrót Ikonek!) --- */
-        .shop-card h2 { color: var(--bright-gold); margin-bottom: 20px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 15px; font-size: 1.8rem; letter-spacing: 1px; }
-        .info-row { display: flex; align-items: flex-start; margin-bottom: 15px; gap: 10px; }
-        .info-icon { width: 22px; height: 22px; margin-top: 2px; flex-shrink: 0; }
-        .info-text { flex: 1; margin: 0; font-size: 1.1rem; line-height: 1.4; color: #fff; }
-        
-        .www-link { color: var(--accent); font-weight: bold; text-decoration: none; border-bottom: 1px solid transparent; }
-        .www-link:hover { border-bottom-color: var(--accent); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>GAMEFINDER // POLAND SECTOR</h1>
-        <button class="btn-add-main" onclick="toggleAddForm()">[+] Dodaj Nowy Sektor</button>
+        <h1>GAMEFINDER // POLAND</h1>
+        <button class="btn-add-main" onclick="toggleAddForm()">+ Dodaj Sklep</button>
     </header>
 
     <div class="main-content">
@@ -158,19 +105,18 @@
 
 <script>
 window.onload = function() {
+    // --- KONFIGURACJA SUPABASE ---
     const SUPABASE_URL = 'https://mzxtgapfqwhhnnldxwlx.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHRnYXBmcXdoaG5ubGR4d2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzA3MDEsImV4cCI6MjA5MDMwNjcwMX0.Mc1aD03KQULGkUjc-folTiv9DVUY6fFl0Ke9A2EHFxw';
 
     const { createClient } = window.supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- INICJALIZACJA MAPY ---
     const map = L.map('map', { 
         zoomSnap: 0.1, 
-        attributionControl: false,
-        zoomControl: false 
+        attributionControl: false 
     }).setView([52.06, 19.48], 6);
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
@@ -180,63 +126,58 @@ window.onload = function() {
         const poland = data.features.find(f => f.properties.name === "Poland");
         if (poland) {
             L.geoJSON(poland, { 
-                style: { color: "#8c6a30", weight: 1.5, fillOpacity: 0.03, fillColor: "#8c6a30" }, 
+                style: { color: "#8c6a30", weight: 2, fillOpacity: 0.05, fillColor: "#8c6a30" }, 
                 interactive: false 
             }).addTo(map);
         }
     });
 
-    // Pomocnik dużych liter
+    // --- FUNKCJA: FORMATOWANIE TEKSTU (Duże Litery) ---
     const formatText = (str) => {
         if (!str) return "";
         return str.trim().toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
 
-    function openSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.style.display = 'block';
-        if(window.innerWidth < 768) { sidebar.scrollTop = 0; }
-    }
-
-    // --- FORMULARZ ---
+    // --- FUNKCJA: FORMULARZ DODAWANIA ---
     window.toggleAddForm = function() {
+        const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('sidebarContent');
-        openSidebar();
+        sidebar.style.display = 'block';
         
         content.innerHTML = `
-            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:1px;">Rejestracja Sektora</h2>
+            <h2 style="color:var(--accent); text-transform:uppercase;">Nowy Sektor</h2>
             <div class="form-group">
-                <label>Nazwa <span class="req-star">*</span></label>
-                <input type="text" id="add_name" placeholder="np. Retro World">
+                <label>Nazwa Sklepu <span class="req-star">*</span></label>
+                <input type="text" id="add_name" placeholder="np. Retro Gry">
             </div>
             <div class="form-group">
                 <label>Ulica i numer <span class="req-star">*</span></label>
-                <input type="text" id="add_street" placeholder="np. Krzywoustego 49">
+                <input type="text" id="add_street" placeholder="np. Marszałkowska 10">
             </div>
             <div class="form-group">
                 <label>Miasto <span class="req-star">*</span></label>
-                <input type="text" id="add_city" placeholder="np. Szczecin">
+                <input type="text" id="add_city" placeholder="np. Warszawa">
             </div>
             <div class="form-group">
-                <label>Strona WWW / FB (opcjonalnie)</label>
+                <label>Strona WWW (opcjonalnie)</label>
                 <input type="text" id="add_url" placeholder="www.przyklad.pl">
             </div>
 
-            <div id="loading_msg">NAMIERZANIE WSPÓŁRZĘDNYCH...</div>
+            <div id="loading_msg">TRWA LOKALIZACJA SKLEPU...</div>
 
-            <button class="btn-save" id="btn_submit" onclick="finalizujZapisAutomatyczny()">Zapisz w Bazie</button>
-            <button class="btn-save" style="background:none; border-color:#444; color:#666; margin-top:8px;" onclick="document.getElementById('sidebar').style.display='none'">Anuluj</button>
-            <div style="height: 30px;"></div>
+            <button class="btn-save" id="btn_submit" onclick="finalizujZapisAutomatyczny()">ZAPISZ SKLEP</button>
+            <button class="btn-save" style="background:none; border:1px solid #444; margin-top:5px;" onclick="document.getElementById('sidebar').style.display='none'">ANULUJ</button>
         `;
     }
 
-    // --- ZAPIS ---
+    // --- FUNKCJA: ZAPIS (Geokodowanie + Duże Litery) ---
     window.finalizujZapisAutomatyczny = async function() {
         const rawName = document.getElementById('add_name').value;
         const rawStreet = document.getElementById('add_street').value;
         const rawCity = document.getElementById('add_city').value;
         const web = document.getElementById('add_url').value.trim().toLowerCase();
         
+        // Magia dużych liter
         const name = formatText(rawName);
         const street = formatText(rawStreet);
         const city = formatText(rawCity);
@@ -260,16 +201,22 @@ window.onload = function() {
             const geoData = await response.json();
 
             if (geoData.length === 0) {
-                alert("Nie znaleźliśmy adresu. Sprawdź pisownię!");
+                alert("Nie znaleźliśmy takiego adresu. Sprawdź czy ulica i miasto są poprawne!");
                 return;
             }
 
             const { error } = await _supabase.from('shops').insert([
-                { name: name, city: fullAddress, lat: geoData[0].lat, lng: geoData[0].lon, description: web }
+                { 
+                    name: name, 
+                    city: fullAddress, 
+                    lat: geoData[0].lat, 
+                    lng: geoData[0].lon, 
+                    description: web 
+                }
             ]);
 
             if (!error) {
-                alert("Sektor " + name + " dodany pomyślnie!");
+                alert("Sektor " + name + " został dodany!");
                 location.reload();
             } else {
                 alert("Błąd bazy: " + error.message);
@@ -283,35 +230,25 @@ window.onload = function() {
         }
     }
 
-    // --- WCZYTYWANIE I IKONA PADA ---
+    // --- FUNKCJA: WCZYTYWANIE PUNKTÓW ---
     async function loadShops() {
         const { data: shops, error } = await _supabase.from('shops').select('*');
         if (error) return;
 
         shops.forEach(shop => {
-            // POWRÓT PADA: Twoja ikona pad.png
-            const tacticalPadIcon = L.icon({
-                iconUrl: 'pad.png',
-                iconSize: [36, 36], // Troszkę większe na mobile
-                iconAnchor: [18, 18], // Środek ikony
-                className: 'glow-marker' // Klasa do pulsowania
-            });
-
-            const marker = L.marker([shop.lat, shop.lng], {
-                icon: tacticalPadIcon
+            const marker = L.circleMarker([shop.lat, shop.lng], {
+                radius: 7, fillColor: "#e94560", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9
             }).addTo(map);
 
-            marker.on('click', (e) => {
-                L.DomEvent.stopPropagation(e);
-                showShopInfo(shop);
-            });
+            marker.on('click', () => showShopInfo(shop));
         });
     }
 
-    // --- PODGLĄD SKLEPU (Powrót Ikon!) ---
+    // --- FUNKCJA: PODGLĄD SKLEPU (Z pełnym URL) ---
     window.showShopInfo = function(shop) {
+        const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('sidebarContent');
-        openSidebar();
+        sidebar.style.display = 'block';
         
         let displayLink = shop.description || "";
         let fullLink = displayLink;
@@ -320,53 +257,25 @@ window.onload = function() {
         content.innerHTML = `
             <div class="shop-card">
                 <h2>${shop.name}</h2>
+                <label>ADRES SEKTORA:</label>
+                <p style="color: #fff;">${shop.city}</p>
                 
-                <div class="info-row">
-                    <img src="location.png" class="info-icon">
-                    <div class="info-text">
-                        <label>ADRES:</label>
-                        <p>${shop.city}</p>
-                    </div>
-                </div>
-                
-                <div class="info-row">
-                    <img src="web.png" class="info-icon">
-                    <div class="info-text">
-                        <label>STRONA WWW / KONTAKT:</label>
-                        ${displayLink ? `
-                            <p><a href="${fullLink}" target="_blank" class="www-link">${displayLink}</a></p>
-                        ` : '<p style="color: #666;">Brak danych</p>'}
-                    </div>
-                </div>
+                <label>STRONA WWW / KONTAKT:</label>
+                ${displayLink ? `
+                    <p style="margin-top: 10px;">
+                        <a href="${fullLink}" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: none; border: 1px solid var(--accent); padding: 5px 10px; border-radius: 4px;">➔ ODWIEDŹ STRONĘ</a>
+                    </p>
+                    <p style="font-size: 0.8rem; color: #8c6a30; margin-top: 15px; word-break: break-all; opacity: 0.8;">${displayLink}</p>
+                ` : '<p style="color: #444;">Brak danych</p>'}
                 
                 <hr style="border:0; border-top:1px solid #333; margin: 30px 0;">
-                <button class="btn-save" style="background:#222; border-color:#444;" onclick="document.getElementById('sidebar').style.display='none'">Powrót do Taktycznej Mapy</button>
-                <div style="height: 30px;"></div>
+                <button class="btn-save" style="background:#222;" onclick="document.getElementById('sidebar').style.display='none'">POWRÓT DO MAPY</button>
             </div>
         `;
     }
 
-    map.on('click', () => {
-        if(window.innerWidth < 768) { document.getElementById('sidebar').style.display = 'none'; }
-    });
-
     loadShops();
 };
 </script>
-
-<style>
-/* --- Styl dla pulsowania ikon ( tactical glow) --- */
-.glow-marker {
-    filter: drop-shadow(0 0 5px rgba(233, 69, 96, 0.7));
-    animation: glow-pulse 2s infinite ease-in-out;
-}
-
-@keyframes glow-pulse {
-    0% { filter: drop-shadow(0 0 5px rgba(233, 69, 96, 0.7)); transform: scale(1); }
-    50% { filter: drop-shadow(0 0 10px rgba(233, 69, 96, 0.9)); transform: scale(1.05); }
-    100% { filter: drop-shadow(0 0 5px rgba(233, 69, 96, 0.7)); transform: scale(1); }
-}
-</style>
-
 </body>
 </html>
