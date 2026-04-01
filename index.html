@@ -10,17 +10,19 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+        /* --- TACTICAL-CYBERPUNK THEME --- */
         :root { 
             --gold: #d8c3a5; 
-            --dark: #0c0d12; 
+            --dark-red: #1a0a0a; /* Bardzo ciemne, czerwonawe tło */
             --accent: #e94560; 
-            --glass: rgba(22, 33, 62, 0.98); 
+            --glass: rgba(26, 10, 10, 0.98); /* Tło panelu */
+            --bright-gold: #ffcc00;
         }
 
         body { 
-            font-family: 'Segoe UI', sans-serif; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
             margin: 0; 
-            background: var(--dark); 
+            background: var(--dark-red); 
             color: var(--gold); 
             overflow: hidden; 
             height: 100vh;
@@ -28,122 +30,123 @@
             flex-direction: column;
         }
 
-        /* --- HEADER (Mobilny RWD) --- */
+        /* --- HEADER --- */
         header { 
-            background: #1a1a2e; 
+            background: #2a1010; 
             padding: 10px 15px; 
             border-bottom: 2px solid #8c6a30; 
             z-index: 2000;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* Pozwala zawijać na bardzo małych ekranach */
+            flex-wrap: wrap;
             gap: 10px;
         }
 
         header h1 { 
             margin: 0; 
             font-size: 1.2rem; 
-            letter-spacing: 1px; 
-            flex-shrink: 1;
+            letter-spacing: 2px; 
+            color: var(--gold);
+            text-transform: uppercase;
         }
 
         .btn-add-main {
-            background: var(--accent);
-            color: white;
-            border: none;
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid #8c6a30;
             padding: 8px 15px;
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
             border-radius: 4px;
             font-size: 0.8rem;
-            white-space: nowrap;
+            letter-spacing: 1px;
+            transition: 0.2s;
         }
+        .btn-add-main:hover { background: #3a1515; border-color: var(--gold); }
 
-        /* --- MAIN CONTENT & MAPA --- */
-        .main-content { 
-            flex: 1; 
-            position: relative; 
-            overflow: hidden;
-        }
-        #map { 
-            width: 100%;
-            height: 100%;
-            background: #000; 
-        }
+        /* --- MAPA --- */
+        .main-content { flex: 1; position: relative; overflow: hidden; }
+        #map { width: 100%; height: 100%; background: #000; }
 
-        /* --- SIDEBAR (Kluczowe zmiany RWD) --- */
+        /* Tactical Zoom Control */
+        .leaflet-touch .leaflet-bar a { 
+            background-color: var(--dark-red); 
+            color: var(--gold); 
+            border: 1px solid #8c6a30;
+            width: 35px; height: 35px; line-height: 35px;
+        }
+        .leaflet-touch .leaflet-bar a:hover { background-color: #3a1515; }
+
+        /* --- SIDEBAR (Tactical & RWD) --- */
         #sidebar { 
             background: var(--glass); 
-            border-left: 2px solid #8c6a30; 
+            border-left: 3px solid #8c6a30; 
             padding: 20px; 
             display: none; 
             position: absolute;
             z-index: 3000;
             overflow-y: auto;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
             transition: all 0.3s ease-out;
         }
 
-        /* Styl dla Komputerów (Desktop) */
+        /* Desktop */
         @media (min-width: 768px) {
             #sidebar {
                 width: 380px; 
                 right: 0; top: 0; bottom: 0;
-                border-left: 2px solid #8c6a30;
-                border-top: none;
             }
         }
 
-        /* Styl dla Telefonów (Mobile) - Wysuwany z dołu */
+        /* Mobile (Wysuwany z dołu) */
         @media (max-width: 767px) {
             #sidebar {
-                width: 100%;
-                height: 80%; /* Zajmuje 80% wysokości ekranu */
+                width: 100%; height: 85%;
                 bottom: 0; left: 0; right: 0;
                 border-left: none;
-                border-top: 3px solid #8c6a30;
-                border-radius: 15px 15px 0 0;
-                box-sizing: border-box;
+                border-top: 4px solid #8c6a30;
+                border-radius: 20px 20px 0 0;
                 padding: 15px;
             }
-            
-            /* Przycisk zamykania na mobile jest ważniejszy */
-            .shop-card h2 { font-size: 1.5rem; }
         }
 
-        /* --- FORMULARZ & KARTY (Dostosowanie do palca) --- */
+        /* --- FORMULARZ (Stylizowany) --- */
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px; color: #8c6a30; font-weight: bold; }
+        label { display: block; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px; color: #8c6a30; font-weight: bold; letter-spacing: 1px;}
         input { 
-            width: 100%; padding: 12px; background: #0c0d12; border: 1px solid #333; 
-            color: white; border-radius: 4px; box-sizing: border-box; font-size: 1rem; /* Większy font, żeby iOS nie robił zoomu */
+            width: 100%; padding: 12px; background: #0c0d12; border: 1px solid #444; 
+            color: var(--gold); border-radius: 4px; box-sizing: border-box; font-size: 1rem;
         }
-        input:focus { border-color: var(--accent); outline: none; }
+        input:focus { border-color: var(--bright-gold); outline: none; background: #1a0a0a; }
+        input::placeholder { color: #555; }
 
         .btn-save { 
-            background: var(--accent); color: white; border: none; padding: 15px; 
+            background: transparent; color: var(--gold); border: 2px solid #8c6a30; padding: 15px; 
             width: 100%; cursor: pointer; text-transform: uppercase; font-weight: bold; margin-top: 10px;
-            font-size: 1rem;
+            font-size: 1rem; letter-spacing: 1px; transition: 0.2s;
         }
+        .btn-save:hover { background: #3a1515; border-color: var(--gold); }
 
-        .shop-card h2 { color: var(--accent); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .shop-card label { margin-top: 15px; color: var(--gold); opacity: 0.8; }
-        .shop-card p { margin: 5px 0; font-size: 1rem; line-height: 1.4; color: #fff; }
-        
-        #loading_msg { display: none; color: var(--accent); font-weight: bold; text-align: center; margin: 10px 0; font-size: 0.8rem; }
+        #loading_msg { display: none; color: var(--accent); font-weight: bold; text-align: center; margin: 10px 0; font-size: 0.8rem; letter-spacing: 1px; }
         .req-star { color: var(--accent); }
 
-        /* Poprawka dla kontrolek mapy na mobile */
-        .leaflet-touch .leaflet-bar a { width: 35px; height: 35px; line-height: 35px; }
+        /* --- KARTA SKLEPU (Powrót Ikonek!) --- */
+        .shop-card h2 { color: var(--bright-gold); margin-bottom: 20px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 15px; font-size: 1.8rem; letter-spacing: 1px; }
+        .info-row { display: flex; align-items: flex-start; margin-bottom: 15px; gap: 10px; }
+        .info-icon { width: 22px; height: 22px; margin-top: 2px; flex-shrink: 0; }
+        .info-text { flex: 1; margin: 0; font-size: 1.1rem; line-height: 1.4; color: #fff; }
+        
+        .www-link { color: var(--accent); font-weight: bold; text-decoration: none; border-bottom: 1px solid transparent; }
+        .www-link:hover { border-bottom-color: var(--accent); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>GAMEFINDER // POLAND</h1>
-        <button class="btn-add-main" onclick="toggleAddForm()">+ Dodaj Sklep</button>
+        <h1>GAMEFINDER // POLAND SECTOR</h1>
+        <button class="btn-add-main" onclick="toggleAddForm()">[+] Dodaj Nowy Sektor</button>
     </header>
 
     <div class="main-content">
@@ -155,21 +158,18 @@
 
 <script>
 window.onload = function() {
-    // --- DANE SUPABASE (Zawsze Twoje) ---
     const SUPABASE_URL = 'https://mzxtgapfqwhhnnldxwlx.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHRnYXBmcXdoaG5ubGR4d2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzA3MDEsImV4cCI6MjA5MDMwNjcwMX0.Mc1aD03KQULGkUjc-folTiv9DVUY6fFl0Ke9A2EHFxw';
 
     const { createClient } = window.supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- MAPA (Zoptymalizowana pod Mobile) ---
     const map = L.map('map', { 
         zoomSnap: 0.1, 
         attributionControl: false,
-        zoomControl: false // Wyłączamy domyślny, dodamy w lepszym miejscu
+        zoomControl: false 
     }).setView([52.06, 19.48], 6);
 
-    // Dodajemy zoom control w prawym dolnym rogu (wygodniej na mobile)
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
@@ -186,54 +186,51 @@ window.onload = function() {
         }
     });
 
-    // Pomocnik do dużych liter
+    // Pomocnik dużych liter
     const formatText = (str) => {
         if (!str) return "";
         return str.trim().toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
 
-    // --- UNIWERSALNE OTWIERANIE SIDEBARU ---
     function openSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.style.display = 'block';
-        // Na mobile przewijamy na górę panelu
-        if(window.innerWidth < 768) {
-            sidebar.scrollTop = 0;
-        }
+        if(window.innerWidth < 768) { sidebar.scrollTop = 0; }
     }
 
-    // --- FORMULARZ DODAWANIA ---
+    // --- FORMULARZ ---
     window.toggleAddForm = function() {
         const content = document.getElementById('sidebarContent');
         openSidebar();
         
         content.innerHTML = `
-            <h2 style="color:var(--accent);">Nowy Sektor</h2>
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:1px;">Rejestracja Sektora</h2>
             <div class="form-group">
-                <label>Nazwa Sklepu <span class="req-star">*</span></label>
-                <input type="text" id="add_name" placeholder="np. Retro Gry">
+                <label>Nazwa <span class="req-star">*</span></label>
+                <input type="text" id="add_name" placeholder="np. Retro World">
             </div>
             <div class="form-group">
                 <label>Ulica i numer <span class="req-star">*</span></label>
-                <input type="text" id="add_street" placeholder="np. Marszałkowska 10">
+                <input type="text" id="add_street" placeholder="np. Krzywoustego 49">
             </div>
             <div class="form-group">
                 <label>Miasto <span class="req-star">*</span></label>
-                <input type="text" id="add_city" placeholder="np. Warszawa">
+                <input type="text" id="add_city" placeholder="np. Szczecin">
             </div>
             <div class="form-group">
-                <label>Strona WWW (opcjonalnie)</label>
-                <input type="text" id="add_url" placeholder="www.strona.pl">
+                <label>Strona WWW / FB (opcjonalnie)</label>
+                <input type="text" id="add_url" placeholder="www.przyklad.pl">
             </div>
 
-            <div id="loading_msg">ZAMIANA ADRESU NA WSPÓŁRZĘDNE...</div>
+            <div id="loading_msg">NAMIERZANIE WSPÓŁRZĘDNYCH...</div>
 
-            <button class="btn-save" id="btn_submit" onclick="finalizujZapisAutomatyczny()">ZAPISZ SKLEP</button>
-            <button class="btn-save" style="background:none; border:1px solid #444; margin-top:8px;" onclick="document.getElementById('sidebar').style.display='none'">ANULUJ</button>
-            <div style="height: 20px;"></div> `;
+            <button class="btn-save" id="btn_submit" onclick="finalizujZapisAutomatyczny()">Zapisz w Bazie</button>
+            <button class="btn-save" style="background:none; border-color:#444; color:#666; margin-top:8px;" onclick="document.getElementById('sidebar').style.display='none'">Anuluj</button>
+            <div style="height: 30px;"></div>
+        `;
     }
 
-    // --- ZAPIS (Geokodowanie) ---
+    // --- ZAPIS ---
     window.finalizujZapisAutomatyczny = async function() {
         const rawName = document.getElementById('add_name').value;
         const rawStreet = document.getElementById('add_street').value;
@@ -263,7 +260,7 @@ window.onload = function() {
             const geoData = await response.json();
 
             if (geoData.length === 0) {
-                alert("Nie znaleźliśmy takiego adresu. Sprawdź pisownię!");
+                alert("Nie znaleźliśmy adresu. Sprawdź pisownię!");
                 return;
             }
 
@@ -272,7 +269,7 @@ window.onload = function() {
             ]);
 
             if (!error) {
-                alert("Sektor " + name + " dodany!");
+                alert("Sektor " + name + " dodany pomyślnie!");
                 location.reload();
             } else {
                 alert("Błąd bazy: " + error.message);
@@ -286,15 +283,22 @@ window.onload = function() {
         }
     }
 
-    // --- WCZYTYWANIE PUNKTÓW ---
+    // --- WCZYTYWANIE I IKONA PADA ---
     async function loadShops() {
         const { data: shops, error } = await _supabase.from('shops').select('*');
         if (error) return;
 
         shops.forEach(shop => {
-            const marker = L.circleMarker([shop.lat, shop.lng], {
-                radius: 8, // Troszkę większe, by łatwiej kliknąć palcem
-                fillColor: "#e94560", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9
+            // POWRÓT PADA: Twoja ikona pad.png
+            const tacticalPadIcon = L.icon({
+                iconUrl: 'pad.png',
+                iconSize: [36, 36], // Troszkę większe na mobile
+                iconAnchor: [18, 18], // Środek ikony
+                className: 'glow-marker' // Klasa do pulsowania
+            });
+
+            const marker = L.marker([shop.lat, shop.lng], {
+                icon: tacticalPadIcon
             }).addTo(map);
 
             marker.on('click', (e) => {
@@ -304,7 +308,7 @@ window.onload = function() {
         });
     }
 
-    // --- PODGLĄD SKLEPU ---
+    // --- PODGLĄD SKLEPU (Powrót Ikon!) ---
     window.showShopInfo = function(shop) {
         const content = document.getElementById('sidebarContent');
         openSidebar();
@@ -316,32 +320,53 @@ window.onload = function() {
         content.innerHTML = `
             <div class="shop-card">
                 <h2>${shop.name}</h2>
-                <label>ADRES SEKTORA:</label>
-                <p>${shop.city}</p>
                 
-                <label>STRONA WWW / KONTAKT:</label>
-                ${displayLink ? `
-                    <p style="margin-top: 15px; margin-bottom: 15px;">
-                        <a href="${fullLink}" target="_blank" style="color: #fff; background: var(--accent); font-weight: bold; text-decoration: none; padding: 12px 20px; border-radius: 4px; display: inline-block;">➔ ODWIEDŹ STRONĘ</a>
-                    </p>
-                    <p style="font-size: 0.8rem; color: #8c6a30; word-break: break-all; opacity: 0.8;">${displayLink}</p>
-                ` : '<p style="color: #666;">Brak danych</p>'}
+                <div class="info-row">
+                    <img src="location.png" class="info-icon">
+                    <div class="info-text">
+                        <label>ADRES:</label>
+                        <p>${shop.city}</p>
+                    </div>
+                </div>
+                
+                <div class="info-row">
+                    <img src="web.png" class="info-icon">
+                    <div class="info-text">
+                        <label>STRONA WWW / KONTAKT:</label>
+                        ${displayLink ? `
+                            <p><a href="${fullLink}" target="_blank" class="www-link">${displayLink}</a></p>
+                        ` : '<p style="color: #666;">Brak danych</p>'}
+                    </div>
+                </div>
                 
                 <hr style="border:0; border-top:1px solid #333; margin: 30px 0;">
-                <button class="btn-save" style="background:#222;" onclick="document.getElementById('sidebar').style.display='none'">POWRÓT DO MAPY</button>
-                <div style="height: 20px;"></div> </div>
+                <button class="btn-save" style="background:#222; border-color:#444;" onclick="document.getElementById('sidebar').style.display='none'">Powrót do Taktycznej Mapy</button>
+                <div style="height: 30px;"></div>
+            </div>
         `;
     }
 
-    // Kliknięcie w mapę zamyka sidebar na mobile
     map.on('click', () => {
-        if(window.innerWidth < 768) {
-            document.getElementById('sidebar').style.display = 'none';
-        }
+        if(window.innerWidth < 768) { document.getElementById('sidebar').style.display = 'none'; }
     });
 
     loadShops();
 };
 </script>
+
+<style>
+/* --- Styl dla pulsowania ikon ( tactical glow) --- */
+.glow-marker {
+    filter: drop-shadow(0 0 5px rgba(233, 69, 96, 0.7));
+    animation: glow-pulse 2s infinite ease-in-out;
+}
+
+@keyframes glow-pulse {
+    0% { filter: drop-shadow(0 0 5px rgba(233, 69, 96, 0.7)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 10px rgba(233, 69, 96, 0.9)); transform: scale(1.05); }
+    100% { filter: drop-shadow(0 0 5px rgba(233, 69, 96, 0.7)); transform: scale(1); }
+}
+</style>
+
 </body>
 </html>
