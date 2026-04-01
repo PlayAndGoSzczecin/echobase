@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEĆ REBELII // HQ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --sw-blue: #00d4ff; --sw-dark: #05070a; --sw-panel: rgba(10, 25, 41, 0.85);
+            --sw-red: #ff2a2a; --sw-text: #e0f7fa; --font-main: 'Orbitron', sans-serif;
+        }
+
+        body { font-family: var(--font-main); margin: 0; background: var(--sw-dark); color: var(--sw-text); overflow: hidden; }
+        
+        header { 
+            background: rgba(5, 7, 10, 0.95); padding: 15px 30px; border-bottom: 2px solid var(--sw-blue);
+            display: flex; justify-content: space-between; align-items: center; height: 70px; box-sizing: border-box;
+            position: relative; z-index: 1005;
+        }
+
+        .header-title { letter-spacing: 2px; font-weight: 700; font-size: 1rem; color: var(--sw-blue); text-transform: uppercase; }
+        .toolbar { display: flex; gap: 15px; align-items: center; }
+        .search-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--sw-blue); padding: 5px 10px; display: flex; align-items: center; }
+        .search-box input { background: transparent; border: none; color: var(--sw-blue); outline: none; width: 180px; font-family: var(--font-main); font-size: 0.7rem; }
+
+        .sw-button { background: transparent; border: 1px solid var(--sw-blue); color: var(--sw-blue); padding: 8px 15px; font-size: 0.65rem; font-family: var(--font-main); cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .sw-button:hover { background: var(--sw-blue); color: #000; box-shadow: 0 0 15px var(--sw-blue); }
+
+        .main-container { display: flex; height: calc(100vh - 105px); position: relative; background: #000; }
+
+        /* PANEL REKLAM - TERAZ ZESTAW 5 SLOTÓW MOŻE SIĘ PRZEWIJAĆ */
+        #ad-sidebar { 
+            width: 380px; background: var(--sw-panel); border-right: 1px solid rgba(0, 212, 255, 0.3); 
+            padding: 10px; display: flex; flex-direction: column; gap: 10px; 
+            overflow-y: auto; /* POPRAWKA: Pozwalamy na scrollowanie */
+            backdrop-filter: blur(10px); z-index: 1001; 
+        }
+
+        /* ZWIĘKSZAMY WYSOKOŚCI, ŻEBY GRAFIKI NIE BYŁY "NAPAĆKANE" */
+        .ad-row { width: 100%; border: 1px solid rgba(0, 212, 255, 0.3); background: #000; position: relative; overflow: hidden; display: block; text-decoration: none; height: 180px; /* POPRAWKA: Wyższy slot */ }
+        .ad-row img { width: 100%; height: 150px; /* POPRAWKA: Wyższy obrazek */ object-fit: cover; filter: saturate(0.8); }
+        .ad-footer { background: var(--sw-blue); color: #000; font-size: 0.6rem; text-align: center; padding: 5px; font-weight: 700; height: 30px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
+
+        #map-area { flex: 1; position: relative; }
+        #map { flex: 1; width: 100%; height: 100%; background: #000; }
+
+        #info-sidebar { width: 380px; background: rgba(5, 10, 15, 0.98); border-left: 2px solid var(--sw-blue); padding: 25px; display: none; position: absolute; right: 0; top: 0; bottom: 0; z-index: 1100; }
+
+        .sw-marker { font-size: 24px; display: flex !important; align-items: center; justify-content: center; width: 30px !important; height: 30px !important; margin-left: -15px !important; margin-top: -15px !important; cursor: pointer; }
+        .premium-marker { border-radius: 50%; animation: static-pulse 2s infinite alternate; }
+        @keyframes static-pulse {
+            from { box-shadow: 0 0 2px var(--sw-blue); background: rgba(0, 212, 255, 0.05); }
+            to { box-shadow: 0 0 15px var(--sw-blue); background: rgba(0, 212, 255, 0.2); }
+        }
+
+        #news-ticker { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; color: var(--sw-blue); font-size: 0.55rem; padding: 8px 0; border-top: 1px solid var(--sw-blue); overflow: hidden; height: 35px; box-sizing: border-box; }
+        .ticker-content { display: inline-block; animation: ticker 40s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left"><div class="header-title">SIEĆ REBELII // HQ</div></div>
+        <div class="toolbar">
+            <div class="search-box"><input type="text" id="city-search" placeholder="NAMIERZ MIASTO..."><button onclick="searchCity()" style="background:none; border:none; color:var(--sw-blue); cursor:pointer; font-family:'Orbitron';">OK</button></div>
+            <button class="sw-button" onclick="toggleAddForm()">+ DODAJ BAZĘ</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div id="ad-sidebar">
+            <div id="ad-list">POBIERANIE...</div>
+        </div>
+        <div id="map-area"><div id="map"></div><div id="info-sidebar"><div id="info-content"></div></div></div>
+    </div>
+
+    <div id="news-ticker"><div class="ticker-content">+++ KANAŁ BEZPIECZNY +++ NIECH MOC BĘDZIE Z TOBĄ +++ RAPORTY Z SEKTORÓW SPŁYWAJĄ +++</div></div>
+
+<script>
+window.onload = function() {
+    const _supabase = window.supabase.createClient('https://mzxtgapfqwhhnnldxwlx.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHRnYXBmcXdoaG5ubGR4d2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzA3MDEsImV4cCI6MjA5MDMwNjcwMX0.Mc1aD03KQULGkUjc-folTiv9DVUY6fFl0Ke9A2EHFxw');
+
+    const map = L.map('map', { attributionControl: false, zoomControl: false }).setView([52.06, 19.48], 6);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+    async function loadAds() {
+        const { data: ads } = await _supabase.from('ads').select('*').order('position', { ascending: true });
+        const adList = document.getElementById('ad-list'); adList.innerHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            const ad = ads?.find(a => parseInt(a.position) === i);
+            if (ad) {
+                adList.innerHTML += `<a href="${ad.target_url}" target="_blank" class="ad-row"><img src="${ad.image_url}"><div class="ad-footer">${ad.label.toUpperCase()}</div></a>`;
+            } else {
+                adList.innerHTML += `<div class="ad-row" style="opacity:0.15; display:flex; align-items:center; justify-content:center; font-size:0.5rem; border:1px dashed var(--sw-blue); text-align:center;">[ WOLNY SEKTOR ]<br>#${i}</div>`;
+            }
+        }
+    }
+
+    async function loadShops() {
+        const { data: shops } = await _supabase.from('shops').select('*');
+        shops?.forEach(shop => {
+            if (!shop.lat || !shop.lng) return;
+            const isPrem = shop.is_premium === true || String(shop.is_premium).toLowerCase() === "true";
+            L.marker([shop.lat, shop.lng], { icon: L.divIcon({ className: isPrem ? 'sw-marker premium-marker' : 'sw-marker', html: `🎮`, iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(map)
+             .on('click', () => {
+                document.getElementById('info-sidebar').style.display = 'block';
+                const webBtn = shop.website ? `<a href="${shop.website}" target="_blank" class="sw-button" style="display:block; text-align:center; margin-top:20px; text-decoration:none;">WEJDŹ DO BAZY</a>` : '';
+                document.getElementById('info-content').innerHTML = `<h2 style="color:var(--sw-blue);">${shop.name}</h2><p style="font-size:0.8rem; margin-top:15px; opacity:0.6;">LOKALIZACJA:</p><p>${shop.city}</p>${webBtn}<button class="sw-button" style="width:100%; margin-top:40px; border-color:var(--sw-red); color:var(--sw-red);" onclick="document.getElementById('info-sidebar').style.display='none'">ROZŁĄCZ</button>`;
+             });
+        });
+    }
+
+    window.searchCity = async () => {
+        const city = document.getElementById('city-search').value;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=pl&q=${encodeURIComponent(city)}`);
+        const data = await res.json();
+        if(data.length > 0) map.flyTo([data[0].lat, data[0].lon], 12);
+    };
+
+    window.toggleAddForm = () => {
+        document.getElementById('info-sidebar').style.display = 'block';
+        document.getElementById('info-content').innerHTML = `<h2 style="color:var(--sw-blue);">REJESTRACJA</h2><div style="margin-top:10px;"><label style="font-size:0.5rem;">KRYPTONIM</label><input type="text" id="add_n" style="width:100%; background:#000; border:1px solid var(--sw-blue); color:#fff; padding:8px; margin-bottom:10px;"><label style="font-size:0.5rem;">LINK DO BAZY</label><input type="text" id="add_w" style="width:100%; background:#000; border:1px solid var(--sw-blue); color:#fff; padding:8px; margin-bottom:10px;"><label style="font-size:0.5rem;">ULICA</label><input type="text" id="add_s" style="width:100%; background:#000; border:1px solid var(--sw-blue); color:#fff; padding:8px; margin-bottom:10px;"><label style="font-size:0.5rem;">MIASTO</label><input type="text" id="add_c" style="width:100%; background:#000; border:1px solid var(--sw-blue); color:#fff; padding:8px; margin-bottom:10px;"><button class="sw-button" style="width:100%; margin-top:15px; background:var(--sw-blue); color:#000;" onclick="saveShop()">TRANSMITUJ</button></div>`;
+    };
+
+    window.saveShop = async () => {
+        const n = document.getElementById('add_n').value; const w = document.getElementById('add_w').value; const s = document.getElementById('add_s').value; const c = document.getElementById('add_c').value;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(s + ", " + c)}`);
+        const data = await res.json();
+        if (data.length > 0) { await _supabase.from('shops').insert([{ name: n, website: w, city: s + ", " + c, lat: data[0].lat, lng: data[0].lon, is_premium: false }]); location.reload(); }
+    };
+
+    loadShops(); loadAds();
+};
+</script>
+</body>
+</html>
